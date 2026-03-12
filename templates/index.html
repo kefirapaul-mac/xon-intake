@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XON Cloud Assessment Engine</title>
+</head>
+<body style="background:black;color:white;font-family:sans-serif;padding:30px;">
+
+<h2>XON Cloud Multimodal Engine</h2>
+
+<button onclick="setIntensity(1)">Low</button>
+<button onclick="setIntensity(2)">Medium</button>
+<button onclick="setIntensity(3)">High</button>
+
+<div id="metrics" style="margin-top:20px;"></div>
+<div id="dashboard" style="margin-top:20px;"></div>
+
+<script>
+const socket = new WebSocket("ws://" + location.host + "/ws");
+
+function setIntensity(level){
+    socket.send(JSON.stringify({question_level: level}));
+}
+
+function randomMetrics(){
+    let stress = Math.floor(Math.random()*100);
+    let deception = Math.floor(Math.random()*100);
+    let engagement = Math.floor(Math.random()*100);
+    let voice = Math.floor(Math.random()*100);
+
+    socket.send(JSON.stringify({
+        metrics:true,
+        stress:stress,
+        deception:deception,
+        engagement:engagement,
+        voice:voice
+    }));
+}
+
+setInterval(randomMetrics, 1000);
+
+socket.onmessage = function(event){
+    let data = JSON.parse(event.data);
+    document.getElementById("metrics").innerHTML =
+        "<pre>"+JSON.stringify(data,null,2)+"</pre>";
+};
+
+async function loadDashboard(){
+    const res = await fetch("/dashboard");
+    const data = await res.json();
+    document.getElementById("dashboard").innerHTML =
+        "<h3>Recruiter Dashboard</h3><pre>"+
+        JSON.stringify(data,null,2)+"</pre>";
+}
+
+setInterval(loadDashboard, 5000);
+</script>
+
+</body>
+</html>

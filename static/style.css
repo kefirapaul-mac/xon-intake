@@ -1,0 +1,40 @@
+.biometric-panel {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.metric {
+    margin-bottom: 20px;
+}
+
+.metric label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #ffffff;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.bar-bg {
+    background: rgba(255,255,255,0.08);
+    height: 8px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 8px;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 20px;
+}
+
+.stress {
+    background: linear-gradient(90deg, #00ffb4, #00ffa0);
+    box-shadow: 0 0 12px rgba(0,255,150,0.8);
+}
+
+.micro {
+    background: linear-gradient(90deg, #ffd7a0, #e6b980);
+    box-shadow: 0 0 12px rgba(255,215,160,0.8);
+}

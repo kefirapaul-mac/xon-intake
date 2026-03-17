@@ -27,22 +27,26 @@ async def home(request: Request):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
-    while True:
-        data = await websocket.receive_text()
-        payload = json.loads(data)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            payload = json.loads(data)
 
-        if "question_level" in payload:
-            set_question_intensity(payload["question_level"])
-            continue
+            if "question_level" in payload:
+                set_question_intensity(payload["question_level"])
+                continue
 
-        if "metrics" in payload:
-            metrics = process_metrics(
-                payload["stress"],
-                payload["deception"],
-                payload["engagement"],
-                payload["voice"]
-            )
-            await websocket.send_text(json.dumps(metrics))
+            if "metrics" in payload:
+                metrics = process_metrics(
+                    payload["stress"],
+                    payload["deception"],
+                    payload["engagement"],
+                    payload["voice"]
+                )
+                await websocket.send_text(json.dumps(metrics))
+
+    except:
+        pass
 
 
 @app.get("/dashboard")
@@ -55,3 +59,8 @@ def recruiter_dashboard():
         "dashboard": dashboard,
         "anomaly_analysis": anomaly
     })
+
+
+@app.get("/health")
+def health():
+    return {"status": "xon live"}

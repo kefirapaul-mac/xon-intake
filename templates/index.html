@@ -9,15 +9,20 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 40px;
-            background: #f7f7f7;
+            background: #f4f6f8;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: auto;
+        }
+
+        .card {
             background: white;
-            padding: 30px;
-            border-radius: 12px;
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         h1 {
@@ -25,64 +30,64 @@
         }
 
         h2 {
-            margin-top: 30px;
+            margin-bottom: 15px;
         }
 
         input, select, button {
             width: 100%;
             padding: 12px;
             margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
 
         button {
+            background: black;
+            color: white;
             cursor: pointer;
+            border: none;
         }
 
-        pre {
-            background: #f0f0f0;
-            padding: 15px;
-            overflow-x: auto;
+        .metric {
+            margin-bottom: 10px;
         }
 
-        #result {
-            margin-top: 30px;
-        }
-
-        #dashboard {
-            margin-top: 30px;
+        .label {
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>XON Cloud Multimodal Engine</h1>
-    <p>Step 1 — Predictive Hiring Intake</p>
 
-    <form id="candidateForm">
-        <input type="text" name="name" placeholder="Candidate Name" required>
+    <div class="card">
+        <h1>XON Cloud Multimodal Engine</h1>
+        <p>Step 1 — Predictive Hiring Intake</p>
 
-        <input type="number" name="age" placeholder="Age" required>
+        <form id="candidateForm">
+            <input type="text" name="name" placeholder="Candidate Name" required>
+            <input type="number" name="age" placeholder="Age" required>
 
-        <select name="sex" required>
-            <option value="">Select Sex</option>
-            <option value="Female">Female</option>
-            <option value="Male">Male</option>
-            <option value="Other">Other</option>
-        </select>
+            <select name="sex" required>
+                <option value="">Select Sex</option>
+                <option>Female</option>
+                <option>Male</option>
+                <option>Other</option>
+            </select>
 
-        <input type="text" name="role" placeholder="Role Applied For" required>
+            <input type="text" name="role" placeholder="Role Applied For" required>
+            <input type="text" name="experience" placeholder="Years of Experience" required>
 
-        <input type="text" name="experience" placeholder="Years of Experience" required>
+            <button type="submit">Start Intake Session</button>
+        </form>
+    </div>
 
-        <button type="submit">Start Intake Session</button>
-    </form>
+    <div id="aiCard"></div>
+    <div id="dashboardCard"></div>
 
-    <div id="result"></div>
-
-    <div id="dashboard"></div>
 </div>
 
 <script>
@@ -98,10 +103,21 @@ document.getElementById("candidateForm").addEventListener("submit", async functi
 
     const data = await res.json();
 
-    document.getElementById("result").innerHTML =
-        "<h2>AI Intake Result</h2><pre>" +
-        JSON.stringify(data, null, 2) +
-        "</pre>";
+    const ai = data.ai_analysis;
+
+    document.getElementById("aiCard").innerHTML = `
+        <div class="card">
+            <h2>AI Intake Interpretation</h2>
+            <div class="metric"><span class="label">Candidate:</span> ${ai.candidate}</div>
+            <div class="metric"><span class="label">Role:</span> ${ai.role}</div>
+            <div class="metric"><span class="label">Baseline:</span> ${ai.baseline}</div>
+            <div class="metric"><span class="label">Adaptive Pattern:</span> ${ai.adaptive_pattern}</div>
+            <div class="metric"><span class="label">Communication Style:</span> ${ai.communication_style}</div>
+            <div class="metric"><span class="label">Stress Response:</span> ${ai.stress_response}</div>
+            <div class="metric"><span class="label">Neural User Manual:</span> ${ai.neural_user_manual}</div>
+            <div class="metric"><span class="label">AI Score:</span> ${ai.ai_score}</div>
+        </div>
+    `;
 
     loadDashboard();
 });
@@ -110,10 +126,18 @@ async function loadDashboard(){
     const res = await fetch("/dashboard");
     const data = await res.json();
 
-    document.getElementById("dashboard").innerHTML =
-        "<h2>Recruiter Dashboard</h2><pre>" +
-        JSON.stringify(data, null, 2) +
-        "</pre>";
+    const d = data.dashboard;
+
+    document.getElementById("dashboardCard").innerHTML = `
+        <div class="card">
+            <h2>Recruiter Dashboard</h2>
+            <div class="metric"><span class="label">Candidate:</span> ${d.candidate.name}</div>
+            <div class="metric"><span class="label">Role:</span> ${d.candidate.role}</div>
+            <div class="metric"><span class="label">Experience:</span> ${d.candidate.experience}</div>
+            <div class="metric"><span class="label">AI Score:</span> ${d.ai_analysis.ai_score}</div>
+            <div class="metric"><span class="label">Anomaly Pattern:</span> ${data.anomaly_analysis.pattern}</div>
+        </div>
+    `;
 }
 
 setInterval(loadDashboard, 5000);

@@ -1,162 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>XON Neural Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <style>
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-            background: radial-gradient(circle at top left, #0f0f0f, #000000 70%);
-            color: white;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            width: 200%;
-            height: 200%;
-            background: repeating-linear-gradient(
-                45deg,
-                rgba(0,255,160,0.05),
-                rgba(0,255,160,0.05) 2px,
-                transparent 2px,
-                transparent 20px
-            );
-            animation: moveAxon 25s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes moveAxon {
-            from { transform: translate(0,0); }
-            to { transform: translate(-200px,-200px); }
-        }
-
-        .container {
-            padding: 60px;
-        }
-
-        h1 {
-            color: #e6d3a3;
-            font-size: 32px;
-            margin-bottom: 40px;
-        }
-
-        .glass-panel {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 40px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 30px rgba(0,255,160,0.15);
-        }
-
-        .score {
-            font-size: 48px;
-            font-weight: 600;
-            color: #00ffaa;
-            margin-bottom: 10px;
-        }
-
-        .metric {
-            margin: 20px 0;
-        }
-
-        .bar {
-            width: 100%;
-            height: 12px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ffaa, #00cc88);
-            animation: pulse 2s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { opacity: 0.7; }
-            to { opacity: 1; }
-        }
-
-        .label {
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: #ccc;
-        }
-
-        .risk-low {
-            color: #00ffaa;
-        }
-
-        .risk-medium {
-            color: #ffcc00;
-        }
-
-        .risk-high {
-            color: #ff4444;
-        }
-
-    </style>
+<meta charset="UTF-8">
+<title>Recruiter Dashboard</title>
+<style>
+body{font-family:Arial;background:#f4f6f8;padding:40px;}
+.card{background:white;padding:25px;border-radius:14px;max-width:900px;margin:auto;}
+input,button{width:100%;padding:12px;margin:10px 0;}
+button{background:black;color:white;border:none;}
+</style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="card">
+<h1>Recruiter Dashboard</h1>
 
-    <h1>Neuro-Psychological Analysis</h1>
+<div id="dashboard"></div>
 
-    <div class="glass-panel">
-        <div class="score">
-            {{ profile.cognitive_score }}
-        </div>
-        <div>Cognitive Stability Index</div>
-    </div>
+<form id="scoreForm">
+<input name="hr_score" placeholder="HR Score" required>
+<input name="therapist_score" placeholder="Therapist Score" required>
+<button type="submit">Submit Combined Score</button>
+</form>
 
-    <div class="glass-panel">
-
-        <div class="metric">
-            <div class="label">Stress Level</div>
-            <div class="bar">
-                <div class="fill" style="width: {{ profile.stress }}%;"></div>
-            </div>
-        </div>
-
-        <div class="metric">
-            <div class="label">Emotional Volatility</div>
-            <div class="bar">
-                <div class="fill" style="width: {{ profile.volatility }}%;"></div>
-            </div>
-        </div>
-
-        <div class="metric">
-            <div class="label">Deception Probability</div>
-            <div class="bar">
-                <div class="fill" style="width: {{ profile.deception }}%;"></div>
-            </div>
-        </div>
-
-        <div class="metric">
-            <div class="label">Engagement Depth</div>
-            <div class="bar">
-                <div class="fill" style="width: {{ profile.engagement }}%;"></div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="glass-panel">
-        <strong>Risk Classification:</strong>
-        <span class="{% if profile.risk == 'LOW' %}risk-low{% elif profile.risk == 'MEDIUM' %}risk-medium{% else %}risk-high{% endif %}">
-            {{ profile.risk }}
-        </span>
-    </div>
-
+<div id="result"></div>
 </div>
+
+<script>
+async function loadDashboard(){
+const res = await fetch("/dashboard");
+const data = await res.json();
+
+document.getElementById("dashboard").innerHTML = `
+<p><b>Candidate:</b> ${data.candidate.name}</p>
+<p><b>Role:</b> ${data.candidate.role}</p>
+<p><b>AI Score:</b> ${data.ai_analysis.ai_score}</p>
+<p><b>Neural Manual:</b> ${data.ai_analysis.neural_user_manual}</p>
+`;
+}
+
+loadDashboard();
+
+document.getElementById("scoreForm").addEventListener("submit", async function(e){
+e.preventDefault();
+
+const formData = new FormData(this);
+formData.append("session_id", localStorage.getItem("session_id"));
+
+const res = await fetch("/submit-score",{method:"POST",body:formData});
+const data = await res.json();
+
+document.getElementById("result").innerHTML =
+`<h2>Combined Score: ${data.combined_score}</h2>`;
+});
+</script>
 
 </body>
 </html>

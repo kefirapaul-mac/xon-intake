@@ -1,88 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>XON Behavioral Intelligence Report</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>Candidate Result</title>
+<style>
+body{
+font-family:Arial;
+background:#f4f6f8;
+padding:40px;
+}
+.card{
+background:white;
+padding:25px;
+border-radius:14px;
+max-width:700px;
+margin:auto;
+box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+</style>
 </head>
 <body>
 
-<div class="container">
-
-    <h1>XON Behavioral Intelligence Report</h1>
-    <p class="subtitle">Candidate: {{ candidate.name }}</p>
-
-    <div class="grid">
-
-        <div class="card">
-            <h2>Stress Level</h2>
-            <div class="meter">
-                <div class="meter-fill" style="width: {{ profile.stress_level }}%;"></div>
-            </div>
-            <p>{{ profile.stress_level }}%</p>
-        </div>
-
-        <div class="card">
-            <h2>Cognitive Load</h2>
-            <div class="meter blue">
-                <div class="meter-fill" style="width: {{ profile.cognitive_load }}%;"></div>
-            </div>
-            <p>{{ profile.cognitive_load }}%</p>
-        </div>
-
-        <div class="card">
-            <h2>Confidence Score</h2>
-            <div class="meter green">
-                <div class="meter-fill" style="width: {{ profile.confidence_score }}%;"></div>
-            </div>
-            <p>{{ profile.confidence_score }}%</p>
-        </div>
-
-        <div class="card risk">
-            <h2>Behavioral Risk Classification</h2>
-            <div class="risk-badge {{ profile.risk_classification | lower }}">
-                {{ profile.risk_classification }}
-            </div>
-        </div>
-
-    </div>
-
-    <div class="chart-container">
-        <canvas id="profileChart"></canvas>
-    </div>
-
-    <div class="card narrative">
-        <h2>Psychological Narrative</h2>
-        <p>{{ profile.narrative }}</p>
-    </div>
-
+<div class="card">
+<h1>Candidate Overall Result</h1>
+<div id="result"></div>
 </div>
 
 <script>
-    const ctx = document.getElementById('profileChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: ['Stress', 'Cognitive Load', 'Confidence'],
-            datasets: [{
-                label: 'Behavioral Metrics',
-                data: [
-                    {{ profile.stress_level }},
-                    {{ profile.cognitive_load }},
-                    {{ profile.confidence_score }}
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                r: {
-                    min: 0,
-                    max: 100
-                }
-            }
-        }
-    });
+async function loadResult(){
+const res = await fetch("/candidate-result");
+const data = await res.json();
+
+document.getElementById("result").innerHTML =
+`<h2>Overall Score: ${data.overall_score}</h2>`;
+}
+
+loadResult();
 </script>
 
 </body>

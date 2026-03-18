@@ -1,146 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XON Intake | KXON AI Labs</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 40px;
-            background: #f4f6f8;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: auto;
-        }
-
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            margin-bottom: 10px;
-        }
-
-        h2 {
-            margin-bottom: 15px;
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-
-        button {
-            background: black;
-            color: white;
-            cursor: pointer;
-            border: none;
-        }
-
-        .metric {
-            margin-bottom: 10px;
-        }
-
-        .label {
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>XON Intake</title>
+<style>
+body{font-family:Arial;background:#f4f6f8;padding:40px;}
+.card{background:white;padding:25px;border-radius:14px;max-width:900px;margin:auto;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+input,select,button{width:100%;padding:12px;margin:10px 0;}
+button{background:black;color:white;border:none;}
+</style>
 </head>
 <body>
 
-<div class="container">
+<div class="card">
+<h1>XON Cloud Multimodal Engine</h1>
 
-    <div class="card">
-        <h1>XON Cloud Multimodal Engine</h1>
-        <p>Step 1 — Predictive Hiring Intake</p>
+<form id="candidateForm">
+<input name="name" placeholder="Candidate Name" required>
+<input name="age" placeholder="Age" required>
+<select name="sex" required>
+<option>Female</option>
+<option>Male</option>
+<option>Other</option>
+</select>
+<input name="role" placeholder="Role Applied For" required>
+<input name="experience" placeholder="Years Experience" required>
+<button type="submit">Start Intake Session</button>
+</form>
 
-        <form id="candidateForm">
-            <input type="text" name="name" placeholder="Candidate Name" required>
-            <input type="number" name="age" placeholder="Age" required>
-
-            <select name="sex" required>
-                <option value="">Select Sex</option>
-                <option>Female</option>
-                <option>Male</option>
-                <option>Other</option>
-            </select>
-
-            <input type="text" name="role" placeholder="Role Applied For" required>
-            <input type="text" name="experience" placeholder="Years of Experience" required>
-
-            <button type="submit">Start Intake Session</button>
-        </form>
-    </div>
-
-    <div id="aiCard"></div>
-    <div id="dashboardCard"></div>
-
+<div id="aiOutput"></div>
 </div>
 
 <script>
 document.getElementById("candidateForm").addEventListener("submit", async function(e){
-    e.preventDefault();
+e.preventDefault();
+const formData = new FormData(this);
 
-    const formData = new FormData(this);
+const res = await fetch("/start-session",{method:"POST",body:formData});
+const data = await res.json();
 
-    const res = await fetch("/start-session", {
-        method: "POST",
-        body: formData
-    });
+localStorage.setItem("session_id", data.session_id);
 
-    const data = await res.json();
-
-    const ai = data.ai_analysis;
-
-    document.getElementById("aiCard").innerHTML = `
-        <div class="card">
-            <h2>AI Intake Interpretation</h2>
-            <div class="metric"><span class="label">Candidate:</span> ${ai.candidate}</div>
-            <div class="metric"><span class="label">Role:</span> ${ai.role}</div>
-            <div class="metric"><span class="label">Baseline:</span> ${ai.baseline}</div>
-            <div class="metric"><span class="label">Adaptive Pattern:</span> ${ai.adaptive_pattern}</div>
-            <div class="metric"><span class="label">Communication Style:</span> ${ai.communication_style}</div>
-            <div class="metric"><span class="label">Stress Response:</span> ${ai.stress_response}</div>
-            <div class="metric"><span class="label">Neural User Manual:</span> ${ai.neural_user_manual}</div>
-            <div class="metric"><span class="label">AI Score:</span> ${ai.ai_score}</div>
-        </div>
-    `;
-
-    loadDashboard();
+document.getElementById("aiOutput").innerHTML = `
+<h2>AI Intake Result</h2>
+<p><b>Candidate:</b> ${data.ai_analysis.candidate}</p>
+<p><b>Role:</b> ${data.ai_analysis.role}</p>
+<p><b>AI Score:</b> ${data.ai_analysis.ai_score}</p>
+<a href="/dashboard-page">Go to Recruiter Dashboard</a>
+`;
 });
-
-async function loadDashboard(){
-    const res = await fetch("/dashboard");
-    const data = await res.json();
-
-    const d = data.dashboard;
-
-    document.getElementById("dashboardCard").innerHTML = `
-        <div class="card">
-            <h2>Recruiter Dashboard</h2>
-            <div class="metric"><span class="label">Candidate:</span> ${d.candidate.name}</div>
-            <div class="metric"><span class="label">Role:</span> ${d.candidate.role}</div>
-            <div class="metric"><span class="label">Experience:</span> ${d.candidate.experience}</div>
-            <div class="metric"><span class="label">AI Score:</span> ${d.ai_analysis.ai_score}</div>
-            <div class="metric"><span class="label">Anomaly Pattern:</span> ${data.anomaly_analysis.pattern}</div>
-        </div>
-    `;
-}
-
-setInterval(loadDashboard, 5000);
 </script>
 
 </body>

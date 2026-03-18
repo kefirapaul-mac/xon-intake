@@ -10,15 +10,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# ------------------------------
-# In-memory session store
-# ------------------------------
-
 SESSION_STORE = {}
-
-# ------------------------------
-# Smart scoring helper
-# ------------------------------
 
 def generate_ai_interpretation(name, role):
     return {
@@ -28,24 +20,21 @@ def generate_ai_interpretation(name, role):
         "adaptive_pattern": "Moderate cognitive load under evaluative prompts",
         "communication_style": "Structured verbal processing",
         "stress_response": "Mild anticipatory tension with recovery",
-        "neural_user_manual": (
-            "Candidate responds better to structured expectations, "
-            "written follow-up, and predictable task framing."
-        ),
+        "neural_user_manual": "Candidate responds better to structured expectations and written follow-up.",
         "ai_score": 82
     }
-
-# ------------------------------
-# Home
-# ------------------------------
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# ------------------------------
-# Start candidate intake
-# ------------------------------
+@app.get("/dashboard-page", response_class=HTMLResponse)
+async def dashboard_page(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
+
+@app.get("/result-page", response_class=HTMLResponse)
+async def result_page(request: Request):
+    return templates.TemplateResponse("result.html", {"request": request})
 
 @app.post("/start-session")
 async def start_session(
@@ -56,7 +45,6 @@ async def start_session(
     experience: str = Form(...)
 ):
     session_id = str(uuid.uuid4())
-
     ai_result = generate_ai_interpretation(name, role)
 
     SESSION_STORE[session_id] = {
@@ -76,60 +64,47 @@ async def start_session(
     }
 
     return JSONResponse({
-        "message": "Session created",
         "session_id": session_id,
         "ai_analysis": ai_result
     })
 
-# ------------------------------
-# Dashboard
-# ------------------------------
-
 @app.get("/dashboard")
 async def dashboard():
     if not SESSION_STORE:
-        return {
-            "dashboard": {
-                "error": "No session data"
-            },
-            "anomaly_analysis": {
-                "anomaly_score": 0,
-                "pattern": "Insufficient data"
-            }
-        }
+        return {"error": "No session data"}
 
-    latest_session = list(SESSION_STORE.values())[-1]
+    latest = list(SESSION_STORE.values())[-1]
+    return latest
 
-    return {
-        "dashboard": latest_session,
-        "anomaly_analysis": {
-            "anomaly_score": 18,
-            "pattern": "Baseline stable with adaptive variation"
-        }
-    }
-
-# ------------------------------
-# Recruiter scoring
-# ------------------------------
-
-@app.post("/submit-human-score")
-async def submit_human_score(
+@app.post("/submit-score")
+async def submit_score(
     session_id: str = Form(...),
     hr_score: int = Form(...),
     therapist_score: int = Form(...)
 ):
-    if session_id not in SESSION_STORE:
+    session = SESSION_STORE.get(session_id)
+
+    if not session:
         return {"error": "Invalid session"}
 
-    ai_score = SESSION_STORE[session_id]["ai_analysis"]["ai_score"]
-
+    ai_score = session["ai_analysis"]["ai_score"]
     combined = round((ai_score + hr_score + therapist_score) / 3, 2)
 
-    SESSION_STORE[session_id]["hr_score"] = hr_score
-    SESSION_STORE[session_id]["therapist_score"] = therapist_score
-    SESSION_STORE[session_id]["combined_score"] = combined
+    session["hr_score"] = hr_score
+    session["therapist_score"] = therapist_score
+    session["combined_score"] = combined
 
     return {
-        "session_id": session_id,
         "combined_score": combined
+    }
+
+@app.get("/candidate-result")
+async def candidate_result():
+    if not SESSION_STORE:
+        return {"error": "No result"}
+
+    latest = list(SESSION_STORE.values())[-1]
+
+    return {
+        "overall_score": latest["combined_score"]
     }
